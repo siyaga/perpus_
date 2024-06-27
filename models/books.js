@@ -8,10 +8,6 @@ const Books = sequelize.define(
       type: DataTypes.STRING,
       primaryKey: true,
     },
-    name: {
-      type: DataTypes.STRING,
-      allowNull: false,
-    },
     title: {
       type: DataTypes.STRING,
       allowNull: false,
@@ -20,7 +16,7 @@ const Books = sequelize.define(
       type: DataTypes.STRING,
       allowNull: false,
     },
-    name: {
+    stock: {
       type: DataTypes.INTEGER,
       allowNull: false,
     },

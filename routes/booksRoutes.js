@@ -12,12 +12,14 @@ router.get(
   asyncHandler(async (req, res) => {
     const page = parseInt(req.query.page) || 1; // Get page number from query parameter, default to 1
     const limit = parseInt(req.query.limit) || 10; // Get limit from query parameter, default to 10
+    const search = req.query.search || ""; // Get limit from query parameter, default to 10
 
     const offset = (page - 1) * limit; // Calculate offset for pagination
 
     const { count, rows } = await books.getAll({
       limit,
       offset,
+      search,
     });
     const data = rows || null;
     const total = count || 0;
@@ -35,18 +37,18 @@ router.get(
 
 // GET /books/:id - Get a single books by ID
 router.get(
-  "/:id",
+  "/:code",
   asyncHandler(async (req, res) => {
-    const memberId = parseInt(req.params.id);
-    const books = await books.getById(memberId);
-    if (books == null || books == undefined) {
+    const booksId = req.params.code;
+    const books_ = await books.getById(booksId);
+    if (books_ == null || books_ == undefined) {
       message = "books not found";
       status_response = 404;
     } else {
       message = "data successfuly show";
       status_response = 200;
     }
-    sendApiResponseSingle(res, books, message, status_response);
+    sendApiResponseSingle(res, books_, message, status_response);
     // if (!books) {
     //   res.status(404).json({ error: "books not found" });
     // } else {
@@ -57,8 +59,7 @@ router.get(
 
 // POST /books - Create a new books
 const validateUser = [
-  body("code").trim().notEmpty().withMessage("Name is required"),
-  body("name").trim().notEmpty().withMessage("Name is required"),
+  body("code").trim().notEmpty().withMessage("code is required"),
   body("title").trim().notEmpty().withMessage("title is required"),
   body("author").trim().notEmpty().withMessage("author is required"),
   body("stock").trim().notEmpty().withMessage("stock is required"),
@@ -68,15 +69,24 @@ router.post(
   "/",
   validateUser,
   asyncHandler(async (req, res) => {
-    try {
-      const errors = validationResult(req);
-      if (!errors.isEmpty()) {
-        return sendApiResponseSingle(res, errors.array(), "error message", 200);
-        // return res.status(400).json({ errors: errors.array() });
-      }
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return sendApiResponseSingle(res, errors.array(), "error message", 200);
+      // return res.status(400).json({ errors: errors.array() });
+    }
 
-      const { code, name, title, author, stock } = req.body;
-      const newUser = await books.create({ code, name, title, author, stock });
+    try {
+      const { code, title, author, stock } = req.body;
+      const existingBooks = await books.getByTitle(title); // Assuming you have a getByName function in your repository
+      if (existingBooks) {
+        return sendApiResponseSingle(
+          res,
+          null,
+          "A Books with this title already exists",
+          400
+        );
+      }
+      const newUser = await books.create({ code, title, author, stock });
       const message = "Books successfully created";
       sendApiResponseSingle(res, newUser, message, 200);
       // res.status(201).json(newUser);
@@ -90,7 +100,7 @@ router.post(
 
 // PUT /books/:id - Update a books by ID
 router.put(
-  "/:id",
+  "/:code",
   validateUser,
   asyncHandler(async (req, res) => {
     try {
@@ -100,11 +110,23 @@ router.put(
         // return res.status(400).json({ errors: errors.array() });
       }
 
-      const { name, title, author, stock } = req.body;
-      const booksId = parseInt(req.params.id);
+      const { title, author, stock } = req.body;
+      const booksId = req.params.code;
+      const books_ = await books.getById(booksId);
+      if (books_ && books_.title !== title) {
+        // Check if a member with the same title already exists (excluding the current member)
+        const existingName = await books.getByTitle(title);
+        if (existingName && existingName.id !== numericId) {
+          return sendApiResponseSingle(
+            res,
+            null,
+            "A member with this title already exists",
+            400
+          );
+        }
+      }
 
       const updatedBooks = await books.update(booksId, {
-        name,
         title,
         author,
         stock,
@@ -130,11 +152,10 @@ router.put(
 
 // DELETE /books/:id - Delete a books by ID
 router.delete(
-  "/:id",
+  "/:code",
   asyncHandler(async (req, res) => {
-    const booksId = parseInt(req.params.id);
+    const booksId = req.params.code;
     const wasDeleted = await books.delete(booksId);
-    console.log(wasDeleted);
     if (wasDeleted == null || wasDeleted == undefined) {
       message = "books not found";
       status_response = 404;
