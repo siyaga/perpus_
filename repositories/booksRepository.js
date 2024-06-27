@@ -54,6 +54,15 @@ const books = {
     return await books.update({ stock: newStock });
   },
 
+  updateStockBack: async (code) => {
+    const books = await Books.findOne({ where: { code } });
+    if (!books) {
+      return null;
+    }
+    const newStock = books.stock + 1; // Decrease stock by 1
+    return await books.update({ stock: newStock });
+  },
+
   delete: async (code) => {
     const books = await Books.findOne({ where: { code } });
     if (!books) {
