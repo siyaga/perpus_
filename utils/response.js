@@ -1,4 +1,4 @@
-const sendApiResponse = (res, page, limit, count, data, message, status) => {
+const sendApiResponse = (res, data, page, limit, count, message, status) => {
   res.status(status).json({
     data,
     page,

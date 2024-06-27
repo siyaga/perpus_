@@ -5,21 +5,27 @@ const Members = sequelize.define(
   "Members",
   {
     code: {
-      type: DataTypes.BIGINT, // Use BIGINT for auto-incrementing
-      autoIncrement: true,
+      type: DataTypes.STRING(10),
+      autoIncrement: false,
       primaryKey: true,
       // Add a custom getter to format the code
+      // Tidak perlu autoIncrement karena kita akan menangani penambahan secara manual
       get() {
         const rawValue = this.getDataValue("code");
-        // Calculate the number of digits needed for padding
-        const paddingLength = Math.max(3, rawValue.toString().length);
-        return `M${rawValue.toString().padStart(paddingLength, "0")}`; // Format as "M001", "M010", "M100", etc.
+        // Memastikan format selalu M diikuti 3 digit angka
+        return `M${parseInt(rawValue.substring(1), 10)
+          .toString()
+          .padStart(3, "0")}`;
       },
-      // Add a custom setter to handle the raw value before saving
       set(value) {
-        // You might want to add validation here to ensure the value is in the correct format
-        this.setDataValue("code", value.substring(1));
-      }, // Extract the numeric part
+        // Validasi format input (harus berupa M diikuti 3 digit angka)
+        if (!/^M\d{3}$/.test(value)) {
+          throw new Error(
+            "Kode anggota harus dalam format M diikuti 3 digit angka (contoh: M001)"
+          );
+        }
+        this.setDataValue("code", value); // Jika valid, simpan langsung
+      },
     },
     name: {
       type: DataTypes.STRING,
@@ -66,5 +72,25 @@ const Members = sequelize.define(
     paranoid: true,
   }
 );
+
+// Fungsi helper untuk mendapatkan kode anggota selanjutnya
+async function getNextMemberCode() {
+  const lastMember = await Members.findOne({
+    order: [["code", "DESC"]],
+  });
+
+  if (!lastMember) {
+    return "M001";
+  }
+
+  const lastCodeNumber = parseInt(lastMember.code.substring(1), 10);
+  const nextCodeNumber = lastCodeNumber + 1;
+  return `M${nextCodeNumber.toString().padStart(3, "0")}`;
+}
+
+// Hook 'beforeCreate'
+Members.beforeCreate(async (member, options) => {
+  member.code = await getNextMemberCode();
+});
 
 module.exports = Members;

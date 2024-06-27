@@ -37,12 +37,11 @@ router.get(
 
 // GET /members/:id - Get a single members by ID
 router.get(
-  "/:id",
+  "/:code",
   asyncHandler(async (req, res) => {
-    const memberId = req.params.id;
+    const memberId = req.params.code;
     // Extract the numeric part of the code
-    const numericId = parseInt(memberId.substring(1));
-    const member = await members.getById(numericId);
+    const member = await members.getById(memberId);
     if (member == null || member == undefined) {
       message = "member not found";
       status_response = 404;
@@ -100,7 +99,7 @@ router.post(
 
 // PUT /members/:id - Update a members by ID
 router.put(
-  "/:id",
+  "/:code",
   validateUser,
   asyncHandler(async (req, res) => {
     try {
@@ -111,14 +110,13 @@ router.put(
       }
 
       const { name } = req.body;
-      const memberId = req.params.id;
+      const memberId = req.params.code;
       // Extract the numeric part of the code
-      const numericId = parseInt(memberId.substring(1));
-      const existingMember = await members.getById(numericId);
+      const existingMember = await members.getById(memberId);
       if (existingMember && existingMember.name !== name) {
         // Check if a member with the same name already exists (excluding the current member)
         const existingName = await members.getByName(name);
-        if (existingName && existingName.id !== numericId) {
+        if (existingName && existingName.code !== existingMember.code) {
           return sendApiResponseSingle(
             res,
             null,
@@ -127,7 +125,7 @@ router.put(
           );
         }
       }
-      const updatedMembers = await members.update(numericId, { name });
+      const updatedMembers = await members.update(memberId, { name });
 
       if (updatedMembers) {
         sendApiResponseSingle(
@@ -149,11 +147,12 @@ router.put(
 
 // DELETE /members/:id - Delete a members by ID
 router.delete(
-  "/:id",
+  "/:code",
   asyncHandler(async (req, res) => {
-    const memberId = req.params.id;
+    const memberId = req.params.code;
     // Extract the numeric part of the code
-    const numericId = parseInt(memberId.substring(1));
+
+    const numericId = await members.getById(memberId);
     const wasDeleted = await members.delete(numericId);
     console.log(wasDeleted);
     if (wasDeleted == null || wasDeleted == undefined) {

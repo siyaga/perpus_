@@ -7,9 +7,8 @@ const members = {
     // Accept options object
     const { limit, offset, search } = options; // Extract limit and offset
     let where = {}; // Initialize where clause
-    console.log(search);
     if (search) {
-      where.name = { [Op.like]: `%${search}%` }; // Add name search condition
+      where.name = { [Op.iLike]: `%${search}%` }; // Add name search condition
     }
     const { count, rows } = await Members.findAndCountAll({
       limit,
@@ -23,30 +22,30 @@ const members = {
     const member = await Members.findOne({ where: { name } });
     return member;
   },
-  getById: async (id) => {
-    const members = await Members.findByPk(id);
-    return members;
+  getById: async (code) => {
+    const member = await Members.findOne({ where: { code } });
+    return member;
   },
 
   create: async (booksData) => {
     return await Members.create(booksData);
   },
 
-  update: async (id, booksData) => {
-    const members = await Members.findByPk(id);
-    console.log(members);
-    if (!members) {
+  update: async (code, booksData) => {
+    const member = await Members.findOne({ where: { code } });
+    console.log(member);
+    if (!member) {
       return null;
     }
-    return await members.update(booksData);
+    return await member.update(booksData);
   },
 
-  delete: async (id) => {
-    const members = await Members.findByPk(id);
-    if (!members) {
+  delete: async (code) => {
+    const member = await Members.findOne({ where: { code } });
+    if (!member) {
       return null;
     }
-    await members.destroy();
+    await member.destroy();
     return true;
   },
 };

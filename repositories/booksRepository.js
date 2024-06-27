@@ -12,8 +12,8 @@ const books = {
         [Op.or]: [
           // Use Op.or for OR conditions
           { code: { [Op.like]: `%${search}%` } },
-          { title: { [Op.like]: `%${search}%` } },
-          { author: { [Op.like]: `%${search}%` } },
+          { title: { [Op.iLike]: `%${search}%` } },
+          { author: { [Op.iLike]: `%${search}%` } },
         ],
       };
     }
