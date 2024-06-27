@@ -30,7 +30,6 @@ const books = {
     return books;
   },
   getById: async (code) => {
-    console.log(code);
     const books = await Books.findOne({ where: { code } });
     return books;
   },
@@ -44,6 +43,15 @@ const books = {
       return null;
     }
     return await books.update(booksData);
+  },
+
+  updateStock: async (code) => {
+    const books = await Books.findOne({ where: { code } });
+    if (!books) {
+      return null;
+    }
+    const newStock = books.stock - 1; // Decrease stock by 1
+    return await books.update({ stock: newStock });
   },
 
   delete: async (code) => {

@@ -1,7 +1,6 @@
 const express = require("express");
 const { Pool } = require("pg");
 const config = require("./config");
-const userRoutes = require("./routes/userRoutes");
 const membersRoutes = require("./routes/membersRoutes");
 const booksRoutes = require("./routes/booksRoutes");
 
@@ -20,7 +19,6 @@ config.sequelize
   });
 
 app.use(express.json());
-app.use("/users", userRoutes); // Use user routes
 app.use("/members", membersRoutes); // members user routes
 app.use("/books", booksRoutes); // books user routes
 
