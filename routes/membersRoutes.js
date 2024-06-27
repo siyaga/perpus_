@@ -9,12 +9,23 @@ router.get(
   "/",
   asyncHandler(async (req, res) => {
     const allUsers = await members.getAll();
+    const page = parseInt(req.query.page) || 1; // Get page number from query parameter, default to 1
+    const limit = parseInt(req.query.limit) || 10; // Get limit from query parameter, default to 10
 
-    if (allUsers.length > 0) {
-      res.json(allUsers); // Send the members as JSON if there are any
-    } else {
-      res.status(200).json({ message: "No members found" }); // Send a 200 OK with a message if there are no members
-    }
+    const offset = (page - 1) * limit; // Calculate offset for pagination
+
+    const { count, rows } = await members.getAll({
+      limit,
+      offset,
+    }); // Get data with pagination
+
+    res.json({
+      data: rows, // Send the members as JSON
+      page, // Send the current page number
+      limit, // Send the limit per page
+      count, // Send the total count of members
+      status: 200, // Send the status code
+    });
   })
 );
 

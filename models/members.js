@@ -25,10 +25,45 @@ const Members = sequelize.define(
       type: DataTypes.STRING,
       allowNull: false,
     },
+    createdAt: {
+      type: DataTypes.DATE,
+      allowNull: false,
+      defaultValue: DataTypes.NOW, // Set current timestamp on creation
+      get() {
+        return this.getDataValue("createdAt")
+          .toISOString()
+          .slice(0, 19)
+          .replace("T", " "); // Format as YYYY-MM-DD HH:MI:SS
+      },
+    },
+    updatedAt: {
+      type: DataTypes.DATE,
+      allowNull: false,
+      defaultValue: DataTypes.NOW, // Set current timestamp on creation
+      onUpdate: DataTypes.NOW, // Update timestamp on update
+      get() {
+        return this.getDataValue("updatedAt")
+          .toISOString()
+          .slice(0, 19)
+          .replace("T", " "); // Format as YYYY-MM-DD HH:MI:SS
+      },
+    },
+    deletedAt: {
+      type: DataTypes.DATE,
+      get() {
+        return this.getDataValue("deletedAt")
+          ? this.getDataValue("deletedAt")
+              .toISOString()
+              .slice(0, 19)
+              .replace("T", " ")
+          : null; // Format as YYYY-MM-DD HH:MI:SS or null if not deleted
+      },
+    },
   },
   {
     tableName: "members",
     freezeTableName: true,
+    paranoid: true,
   }
 );
 
