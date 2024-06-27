@@ -15,9 +15,6 @@ const users = {
 
   getById: async (id) => {
     const user = await User.findByPk(id);
-    if (!user) {
-      throw new Error("User not found"); // Or handle this in a more user-friendly way
-    }
     return user;
   },
 
@@ -28,7 +25,7 @@ const users = {
   update: async (id, userData) => {
     const user = await User.findByPk(id);
     if (!user) {
-      throw new Error("User not found"); // Or handle this in a more user-friendly way
+      return null;
     }
     return await user.update(userData);
   },
@@ -36,7 +33,7 @@ const users = {
   delete: async (id) => {
     const user = await User.findByPk(id);
     if (!user) {
-      throw new Error("User not found");
+      return null;
     }
     await user.destroy();
     return true;

@@ -91,7 +91,6 @@ router.put(
   validateUser,
   asyncHandler(async (req, res) => {
     try {
-      console.log("test");
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
         return sendApiResponseSingle(res, errors.array(), "error message", 400);
@@ -100,7 +99,9 @@ router.put(
 
       const { name, email } = req.body;
       const userId = parseInt(req.params.id);
+
       const updatedUser = await users.update(userId, { name, email });
+
       if (updatedUser) {
         sendApiResponseSingle(
           res,
@@ -111,8 +112,6 @@ router.put(
       } else {
         sendApiResponseSingle(res, null, "User not found", 404);
       }
-
-      sendApiResponseSingle(res, newUser, message, status_response);
     } catch (error) {
       console.error("Error fetching users:", error);
       const message = "Failed to fetch users";
@@ -127,14 +126,15 @@ router.delete(
   asyncHandler(async (req, res) => {
     const userId = parseInt(req.params.id);
     const wasDeleted = await users.delete(userId);
-    if (updatedUser == null || updatedUser == undefined) {
+    console.log(wasDeleted);
+    if (wasDeleted == null || wasDeleted == undefined) {
       message = "User not found";
       status_response = 404;
     } else {
-      message = "data successfuly show";
+      message = "user successfuly deleted";
       status_response = 200;
     }
-    sendApiResponseSingle(res, wasDeleted, message, status_response);
+    sendApiResponseSingle(res, null, message, status_response);
   })
 );
 
